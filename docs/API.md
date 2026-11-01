@@ -1,6 +1,8 @@
-# Contrato HTTP y ejemplos
+# Uso de la API
 
-Base local: `http://127.0.0.1:3000/api`. Fechas ISO 8601 UTC. Todas las respuestas de la API deshabilitan caché. Las peticiones de escritura con cuerpo usan `Content-Type: application/json` (máximo 16 KB). Se requiere cookie de sesión y `X-CSRF-Token` para las escrituras, incluido registro e inicio de sesión. Se obtiene un token con `GET /session` y se reemplaza al autenticar.
+La dirección base es `http://127.0.0.1:3000/api`. Las fechas se devuelven en formato ISO 8601 y en UTC. La API desactiva la caché de sus respuestas para evitar que se consulten datos guardados por el navegador.
+
+Las solicitudes que envían datos deben usar `Content-Type: application/json` y un cuerpo de hasta 16 KB. Para las operaciones de escritura se necesita la cookie de sesión y el encabezado `X-CSRF-Token`, incluso al registrarse o iniciar sesión. El token se obtiene con `GET /session` y cambia después de la autenticación.
 
 ## Recursos
 
@@ -20,7 +22,7 @@ Base local: `http://127.0.0.1:3000/api`. Fechas ISO 8601 UTC. Todas las respuest
 | `GET /tasks/export` | Autenticado | 200 archivo adjunto `tareas.json` |
 | `GET /events` | Autenticado | 200 flujo `text/event-stream` |
 
-Los recursos pertenecen al usuario autenticado. Un ID ajeno devuelve 404. Los métodos no admitidos sobre `/tasks` y `/tasks/:id` devuelven 405 con `Allow`. `HEAD` es soportado automáticamente para GET. No se habilita CORS: la interfaz y la API comparten origen.
+Cada usuario puede acceder solo a sus propias tareas. Si intenta consultar una tarea de otra cuenta, recibe `404`. Cuando se usa un método no permitido en `/tasks` o `/tasks/:id`, la respuesta es `405` e incluye el encabezado `Allow`. Express también atiende `HEAD` para las rutas GET. No se configuró CORS porque la interfaz y la API se sirven desde el mismo origen.
 
 ## Validación
 
@@ -34,11 +36,13 @@ Los recursos pertenecen al usuario autenticado. Un ID ajeno devuelve 404. Los m�
 | `priority` | `baja`, `media`, `alta`; por defecto `media` en POST |
 | `id` | Entero positivo seguro, sin ceros iniciales |
 
-`PUT` exige los cuatro campos editables. `PATCH` exige al menos uno. No se permite escribir `id`, `owner_id`, fechas ni `version`; se rechazan campos adicionales. `GET /tasks` admite `status`, `priority`, `q` (hasta 120 caracteres), `limit` (1-99, defecto 50) y `offset` (0-999999, defecto 0); no acepta parámetros desconocidos. El orden es ID descendente y `q` busca literalmente en el título, sin comodines SQL.
+Para usar `PUT` hay que enviar los cuatro campos editables. Con `PATCH` basta con enviar uno, pero el cuerpo no puede estar vacío. El identificador, el propietario, las fechas y la versión los controla el servidor; cualquier campo adicional se rechaza.
+
+El listado `GET /tasks` permite filtrar por `status`, `priority` y `q`, que busca en el título y admite hasta 120 caracteres. Para dividir el resultado en páginas se usan `limit` (de 1 a 99, con 50 por defecto) y `offset` (de 0 a 999999, con 0 por defecto). Las tareas se ordenan por ID descendente. La búsqueda trata el texto de forma literal, sin comodines SQL, y no se admiten parámetros desconocidos.
 
 ## Ejemplos de petición y respuesta
 
-Los comandos usan `curl` de Bash; en PowerShell usar `curl.exe` o importar la colección Postman. El archivo temporal `cookies.txt` mantiene la sesión y debe guardarse fuera del repositorio. Los valores de `TOKEN` e ID se extraen de las respuestas reales.
+Los siguientes ejemplos usan `curl` en Bash. En PowerShell se puede usar `curl.exe`, o importar la colección en Postman. El archivo `cookies.txt` conserva la sesión entre solicitudes y debe guardarse fuera del repositorio. Los tokens y los identificadores de los ejemplos se reemplazan por los que devuelva la aplicación.
 
 ### 1. Obtener sesión anónima
 
@@ -59,7 +63,7 @@ curl -i -b cookies.txt -c cookies.txt \
   http://127.0.0.1:3000/api/auth/register
 ```
 
-HTTP **201**; registro con inicio de sesión y cookie regenerada. Para acceder a una cuenta existente, usar la misma petición con `/auth/login` (HTTP **200**).
+Si el registro se completa, la API responde **201**, inicia la sesión y renueva la cookie. Para entrar con una cuenta que ya existe, se envían los mismos campos a `/auth/login`; en ese caso la respuesta correcta es **200**.
 
 ```json
 {"data":{"user":{"id":1,"username":"estudiante"},"csrfToken":"TOKEN_AUTENTICADO"}}
@@ -74,7 +78,7 @@ curl -i -b cookies.txt -H 'Content-Type: application/json' \
   http://127.0.0.1:3000/api/tasks
 ```
 
-HTTP **201**, `Location: /api/tasks/1`, `ETag: "1"`. Fechas e ID son ilustrativos:
+Al crear la tarea se recibe **201**, junto con `Location: /api/tasks/1` y `ETag: "1"`. El ID y las fechas de esta respuesta son de ejemplo:
 
 ```json
 {"data":{"id":1,"title":"Entregar API","description":"","status":"pendiente","priority":"alta","version":1,"createdAt":"2026-10-31T20:00:00.000Z","updatedAt":"2026-10-31T20:00:00.000Z"}}
@@ -85,7 +89,7 @@ curl -i -b cookies.txt http://127.0.0.1:3000/api/tasks/1
 curl -i -b cookies.txt 'http://127.0.0.1:3000/api/tasks?status=pendiente&priority=alta&limit=10&offset=0'
 ```
 
-El listado responde HTTP **200** con `{"data":[...],"meta":{"total":1,"limit":10,"offset":0}}`; la lectura individual responde con `{data:{...}}` y el ETag actual.
+El listado devuelve **200** y separa las tareas de los datos de paginación: `{"data":[...],"meta":{"total":1,"limit":10,"offset":0}}`. Al consultar una sola tarea, la respuesta tiene la forma `{data:{...}}` e incluye su ETag actual.
 
 ### 4. Reemplazar y modificar
 
@@ -100,7 +104,7 @@ curl -i -X PATCH -b cookies.txt -H 'Content-Type: application/json' \
   -d '{"status":"completada"}' http://127.0.0.1:3000/api/tasks/1
 ```
 
-Ambos devuelven HTTP **200**, la tarea y un nuevo ETag. El PUT incrementa a versión 2 y el PATCH a versión 3. Usar una versión anterior produce HTTP **412**; el cliente debe leer otra vez antes de reintentar.
+Las dos solicitudes devuelven **200** con la tarea actualizada y un nuevo ETag. En este ejemplo, el `PUT` deja la tarea en la versión 2 y el `PATCH` en la versión 3. Si se intenta guardar con una versión anterior, se recibe **412**. Antes de volver a editar hay que consultar la tarea para obtener su versión actual.
 
 ### 5. Exportar, eliminar y salir
 
@@ -113,11 +117,11 @@ curl -i -X POST -b cookies.txt -H 'Content-Type: application/json' \
   http://127.0.0.1:3000/api/auth/logout
 ```
 
-Exportar devuelve HTTP **200**, `Content-Disposition: attachment; filename=tareas.json` y `{data:[...]}`. DELETE y logout devuelven **204**, sin cuerpo.
+La exportación responde **200** y usa `Content-Disposition: attachment; filename=tareas.json` para descargar el archivo con la estructura `{data:[...]}`. Tanto la eliminación como el cierre de sesión responden **204**, sin contenido en el cuerpo.
 
 ### 6. Observar cambios en tiempo real
 
-En otra terminal, antes de crear o modificar tareas:
+Para observar los eventos, se ejecuta este comando en otra terminal antes de crear o modificar una tarea:
 
 ```sh
 curl -N -b cookies.txt http://127.0.0.1:3000/api/events
@@ -132,15 +136,17 @@ event: task.changed
 data: {"type":"created","task":{"id":1,"title":"Entregar API","description":"","status":"pendiente","priority":"alta","version":1,"createdAt":"2026-10-31T20:00:00.000Z","updatedAt":"2026-10-31T20:00:00.000Z"},"occurredAt":"2026-10-31T20:00:00.001Z"}
 ```
 
-Tipos: `created`, `updated`, `deleted`; al eliminar, `task` contiene solo `id`. El heartbeat es un comentario SSE cada 15 segundos. Se verifica la sesión al publicar y en cada heartbeat. La sesión se revoca al salir; una conexión inactiva vencida se cierra en el siguiente heartbeat. SSE no necesita CSRF porque solo lee. En el navegador, `EventSource('/api/events')` envía la cookie del mismo origen. Los eventos son efímeros: al reconectar, el cliente vuelve a consultar el listado completo.
+Los eventos indican si una tarea fue creada (`created`), modificada (`updated`) o eliminada (`deleted`). Al eliminarla, `task` contiene únicamente el `id`. Cada 15 segundos se envía un comentario SSE para mantener la conexión y comprobar la sesión; también se verifica la sesión antes de enviar un evento. Al cerrar sesión se revoca el acceso. Si una sesión vence mientras la conexión está inactiva, esta se cierra en la siguiente comprobación.
 
-## Errores uniformes
+Esta ruta solo consulta información, por lo que no necesita un token CSRF. En el navegador, `EventSource('/api/events')` envía la cookie del mismo origen. Los eventos no quedan guardados: cuando se recupera una conexión, el cliente consulta de nuevo el listado para ponerse al día.
+
+## Respuestas de error
 
 ```json
 {"error":{"code":"VALIDATION_ERROR","message":"Los datos no son válidos.","details":[{"field":"title","message":"Too small: expected string to have >=3 characters"}],"requestId":"UUID-de-la-solicitud"}}
 ```
 
-El texto de validación proviene de Zod y puede estar en inglés; `code` y el formato constituyen el contrato. Los errores internos nunca exponen stack traces al cliente.
+Todos los errores mantienen esta estructura. El mensaje de validación lo genera Zod y puede aparecer en inglés; para identificar el problema desde otra aplicación conviene usar el campo `code`. Si ocurre un error interno, el servidor lo registra sin enviar la traza al cliente.
 
 | HTTP | Código | Causa |
 |---|---|---|
