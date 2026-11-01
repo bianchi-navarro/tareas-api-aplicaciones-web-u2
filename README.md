@@ -105,5 +105,3 @@ El proyecto académico funciona en un solo proceso. SSE y la limitación de inte
 - Express.js. (s. f.). *5.x API reference*. https://expressjs.com/en/5x/api/
 - Express.js. (s. f.). *Session middleware*. https://expressjs.com/en/resources/middleware/session/
 - Node.js. (s. f.). *SQLite: Node.js v22.20.0 documentation*. https://nodejs.org/download/release/v22.20.0/docs/api/sqlite.html
-
-Las referencias anteriores respaldan la tecnología utilizada. La consigna del curso se utilizó para los requisitos de entrega.
