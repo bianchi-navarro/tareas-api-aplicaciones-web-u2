@@ -1,0 +1,210 @@
+
+> tareas-api-u2@1.0.0 test:coverage
+> node --experimental-test-isolation=none --experimental-test-coverage --test --test-concurrency=1
+
+(node:26580) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+TAP version 13
+# Subtest: 01. Salud y formato uniforme con identificador de solicitud
+ok 1 - 01. Salud y formato uniforme con identificador de solicitud
+  ---
+  duration_ms: 98.9731
+  type: 'test'
+  ...
+# Subtest: 02. Registro, cookie segura para localhost y rotación de sesión
+ok 2 - 02. Registro, cookie segura para localhost y rotación de sesión
+  ---
+  duration_ms: 111.584
+  type: 'test'
+  ...
+# Subtest: 03. Contraseñas con sal y hash, nunca texto plano
+ok 3 - 03. Contraseñas con sal y hash, nunca texto plano
+  ---
+  duration_ms: 85.3552
+  type: 'test'
+  ...
+# Subtest: 04. Registro valida nombre, contraseña, campos extra y duplicados
+ok 4 - 04. Registro valida nombre, contraseña, campos extra y duplicados
+  ---
+  duration_ms: 135.8072
+  type: 'test'
+  ...
+# Subtest: 05. Login válido e inválido y logout invalidan la cookie anterior
+ok 5 - 05. Login válido e inválido y logout invalidan la cookie anterior
+  ---
+  duration_ms: 216.1183
+  type: 'test'
+  ...
+# Subtest: 06. CSRF es obligatorio, válido y se rota al autenticar
+ok 6 - 06. CSRF es obligatorio, válido y se rota al autenticar
+  ---
+  duration_ms: 94.1259
+  type: 'test'
+  ...
+# Subtest: 07. CRUD completo: POST, GET, PUT, PATCH y DELETE
+ok 7 - 07. CRUD completo: POST, GET, PUT, PATCH y DELETE
+  ---
+  duration_ms: 98.225
+  type: 'test'
+  ...
+# Subtest: 08. Validación completa en creación, reemplazo y cambios parciales
+ok 8 - 08. Validación completa en creación, reemplazo y cambios parciales
+  ---
+  duration_ms: 109.3744
+  type: 'test'
+  ...
+# Subtest: 09. Títulos duplicados normalizados generan 409 sin modificar datos
+ok 9 - 09. Títulos duplicados normalizados generan 409 sin modificar datos
+  ---
+  duration_ms: 92.0241
+  type: 'test'
+  ...
+# Subtest: 10. Ediciones simultáneas: 428 sin versión y 412 con versión obsoleta
+ok 10 - 10. Ediciones simultáneas: 428 sin versión y 412 con versión obsoleta
+  ---
+  duration_ms: 96.062
+  type: 'test'
+  ...
+# Subtest: 11. Aislamiento entre usuarios en listado, lectura, edición, eliminación y exportación
+ok 11 - 11. Aislamiento entre usuarios en listado, lectura, edición, eliminación y exportación
+  ---
+  duration_ms: 137.9188
+  type: 'test'
+  ...
+# Subtest: 12. Filtros, búsqueda literal y paginación coherente
+ok 12 - 12. Filtros, búsqueda literal y paginación coherente
+  ---
+  duration_ms: 97.8298
+  type: 'test'
+  ...
+# Subtest: 13. Consultas parametrizadas resisten cadenas SQL y preservan datos
+ok 13 - 13. Consultas parametrizadas resisten cadenas SQL y preservan datos
+  ---
+  duration_ms: 88.8548
+  type: 'test'
+  ...
+# Subtest: 14. Errores de JSON, tipo de contenido y tamaño conservan el contrato
+ok 14 - 14. Errores de JSON, tipo de contenido y tamaño conservan el contrato
+  ---
+  duration_ms: 89.9424
+  type: 'test'
+  ...
+# Subtest: 15. Identificadores inválidos, inexistentes, rutas y métodos
+ok 15 - 15. Identificadores inválidos, inexistentes, rutas y métodos
+  ---
+  duration_ms: 94.5482
+  type: 'test'
+  ...
+# Subtest: 16. Exportación es un archivo JSON autorizado y consistente
+ok 16 - 16. Exportación es un archivo JSON autorizado y consistente
+  ---
+  duration_ms: 89.7334
+  type: 'test'
+  ...
+# Subtest: 17. SSE emite creación, actualización y eliminación después de persistir
+ok 17 - 17. SSE emite creación, actualización y eliminación después de persistir
+  ---
+  duration_ms: 97.9621
+  type: 'test'
+  ...
+# Subtest: 18. SSE aísla eventos por usuario y no emite mutaciones rechazadas
+ok 18 - 18. SSE aísla eventos por usuario y no emite mutaciones rechazadas
+  ---
+  duration_ms: 132.8878
+  type: 'test'
+  ...
+# Subtest: 19. Logout cierra SSE y el endpoint exige autenticación
+ok 19 - 19. Logout cierra SSE y el endpoint exige autenticación
+  ---
+  duration_ms: 89.48
+  type: 'test'
+  ...
+# Subtest: 20. Tareas y sesiones sobreviven al reinicio con secreto estable
+ok 20 - 20. Tareas y sesiones sobreviven al reinicio con secreto estable
+  ---
+  duration_ms: 155.5355
+  type: 'test'
+  ...
+# Subtest: 21. Una sesión vencida deja de autorizar acceso
+ok 21 - 21. Una sesión vencida deja de autorizar acceso
+  ---
+  duration_ms: 85.0829
+  type: 'test'
+  ...
+# Subtest: 22. Limitación de intentos devuelve 429 y error uniforme
+ok 22 - 22. Limitación de intentos devuelve 429 y error uniforme
+  ---
+  duration_ms: 85.1231
+  type: 'test'
+  ...
+# Subtest: 23. Encabezados de seguridad, caché y vista web disponible
+ok 23 - 23. Encabezados de seguridad, caché y vista web disponible
+  ---
+  duration_ms: 46.8907
+  type: 'test'
+  ...
+# Subtest: 24. Producción rechaza secretos ausentes o débiles
+ok 24 - 24. Producción rechaza secretos ausentes o débiles
+  ---
+  duration_ms: 0.4066
+  type: 'test'
+  ...
+# Subtest: 25. Transformaciones puras normalizan sin mutar la entrada
+ok 25 - 25. Transformaciones puras normalizan sin mutar la entrada
+  ---
+  duration_ms: 0.141
+  type: 'test'
+  ...
+# Subtest: 26. PATCH admite cambios parciales sin introducir valores por defecto
+ok 26 - 26. PATCH admite cambios parciales sin introducir valores por defecto
+  ---
+  duration_ms: 0.0892
+  type: 'test'
+  ...
+# Subtest: 27. Identificadores y versiones aceptan solo enteros positivos seguros
+ok 27 - 27. Identificadores y versiones aceptan solo enteros positivos seguros
+  ---
+  duration_ms: 0.1364
+  type: 'test'
+  ...
+1..27
+# tests 27
+# suites 0
+# pass 27
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 2713.5096
+# start of coverage report
+# ---------------------------------------------------------------------
+# file                 | line % | branch % | funcs % | uncovered lines
+# ---------------------------------------------------------------------
+# src                  |        |          |         | 
+#  app.js              | 100.00 |    73.33 |  100.00 | 
+#  domain              |        |          |         | 
+#   errors.js          | 100.00 |   100.00 |  100.00 | 
+#   validation.js      | 100.00 |   100.00 |  100.00 | 
+#  http                |        |          |         | 
+#   middleware.js      |  91.18 |    82.61 |  100.00 | 29-31
+#   routes.js          | 100.00 |    90.91 |   95.83 | 
+#  infrastructure      |        |          |         | 
+#   database.js        | 100.00 |   100.00 |  100.00 | 
+#   events.js          |  88.24 |    86.67 |   88.89 | 12-15
+#   session-store.js   | 100.00 |    72.73 |   71.43 | 
+#   task-repository.js | 100.00 |   100.00 |  100.00 | 
+#  services            |        |          |         | 
+#   auth-service.js    |  93.75 |    92.31 |  100.00 | 22-23
+#   task-service.js    | 100.00 |   100.00 |  100.00 | 
+# test                 |        |          |         | 
+#  api.test.js         | 100.00 |   100.00 |   97.62 | 
+#  domain.test.js      | 100.00 |   100.00 |  100.00 | 
+# ---------------------------------------------------------------------
+# all files            |  98.67 |    92.83 |   95.93 | 
+# ---------------------------------------------------------------------
+# end of coverage report
+npm notice
+npm notice New major version of npm available! 10.9.3 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice

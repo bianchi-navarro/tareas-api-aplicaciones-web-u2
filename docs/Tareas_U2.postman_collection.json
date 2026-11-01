@@ -1,0 +1,905 @@
+{
+  "info": {
+    "name": "Rumbo - API REST U2",
+    "description": "Ejecutar la colección en orden. Cookie jar activado. Genera un usuario único, comprueba los casos y elimina su tarea. SSE y persistencia entre reinicios se prueban con npm test.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:3000/api"
+    },
+    {
+      "key": "username",
+      "value": ""
+    },
+    {
+      "key": "csrfToken",
+      "value": ""
+    },
+    {
+      "key": "taskId",
+      "value": ""
+    },
+    {
+      "key": "version",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Salud",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/health"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Obtener sesión y CSRF",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/session"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('csrfToken', pm.response.json().data.csrfToken);",
+              "pm.collectionVariables.set('username', 'alumno_' + Date.now());",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "03 Registro con sesión",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"PostmanPrueba2026!\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "const data=pm.response.json().data; pm.collectionVariables.set('csrfToken',data.csrfToken); pm.test('Usuario autenticado',()=>pm.expect(data.user.username).to.equal(pm.collectionVariables.get('username')));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "04 Sesión autenticada",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/session"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "const data=pm.response.json().data; pm.collectionVariables.set('csrfToken',data.csrfToken); pm.test('Usuario autenticado',()=>pm.expect(data.user.username).to.equal(pm.collectionVariables.get('username')));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "05 Crear tarea",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/tasks",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Tarea de Postman\",\n  \"priority\": \"alta\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 201', () => pm.response.to.have.status(201));",
+              "const t=pm.response.json().data; pm.collectionVariables.set('taskId', t.id); pm.collectionVariables.set('version',t.version);",
+              "pm.test('Location y ETag',()=>{pm.expect(pm.response.headers.get('Location')).to.include('/api/tasks/'); pm.expect(pm.response.headers.get('ETag')).to.equal('\"1\"');});",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "06 Leer tarea",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/tasks/{{taskId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "07 Listar con filtros",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/tasks?status=pendiente&priority=alta&limit=10&offset=0"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Listado paginado',()=>pm.expect(pm.response.json().meta.total).to.equal(1));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "08 Rechazar título inválido",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/tasks",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"x\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 422', () => pm.response.to.have.status(422));",
+              "pm.test('Error uniforme', () => { const e=pm.response.json().error; pm.expect(e.code).to.be.a('string'); pm.expect(e.requestId).to.be.a('string'); pm.expect(e.details).to.be.an('array'); });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "09 Rechazar duplicado",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/tasks",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"TAREA DE POSTMAN\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 409', () => pm.response.to.have.status(409));",
+              "pm.test('Error uniforme', () => { const e=pm.response.json().error; pm.expect(e.code).to.be.a('string'); pm.expect(e.requestId).to.be.a('string'); pm.expect(e.details).to.be.an('array'); });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 Exigir If-Match",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/tasks/{{taskId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"completada\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 428', () => pm.response.to.have.status(428));",
+              "pm.test('Error uniforme', () => { const e=pm.response.json().error; pm.expect(e.code).to.be.a('string'); pm.expect(e.requestId).to.be.a('string'); pm.expect(e.details).to.be.an('array'); });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11 Reemplazar tarea",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          },
+          {
+            "key": "If-Match",
+            "value": "\"{{version}}\""
+          }
+        ],
+        "url": "{{baseUrl}}/tasks/{{taskId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Tarea de Postman\",\n  \"description\": \"Prueba completa\",\n  \"status\": \"en_progreso\",\n  \"priority\": \"media\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('version',pm.response.json().data.version);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 Modificar estado",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          },
+          {
+            "key": "If-Match",
+            "value": "\"{{version}}\""
+          }
+        ],
+        "url": "{{baseUrl}}/tasks/{{taskId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"completada\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('version',pm.response.json().data.version); pm.test('PATCH conserva título',()=>pm.expect(pm.response.json().data.title).to.equal('Tarea de Postman'));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 Detectar versión obsoleta",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          },
+          {
+            "key": "If-Match",
+            "value": "\"1\""
+          }
+        ],
+        "url": "{{baseUrl}}/tasks/{{taskId}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"status\": \"pendiente\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 412', () => pm.response.to.have.status(412));",
+              "pm.test('Error uniforme', () => { const e=pm.response.json().error; pm.expect(e.code).to.be.a('string'); pm.expect(e.requestId).to.be.a('string'); pm.expect(e.details).to.be.an('array'); });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 Rechazar JSON incompleto",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/tasks",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"title\":",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+              "pm.test('Error uniforme', () => { const e=pm.response.json().error; pm.expect(e.code).to.be.a('string'); pm.expect(e.requestId).to.be.a('string'); pm.expect(e.details).to.be.an('array'); });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 Rechazar ID inválido",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/tasks/abc"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 400', () => pm.response.to.have.status(400));",
+              "pm.test('Error uniforme', () => { const e=pm.response.json().error; pm.expect(e.code).to.be.a('string'); pm.expect(e.requestId).to.be.a('string'); pm.expect(e.details).to.be.an('array'); });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 Rechazar método incorrecto",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/tasks",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 405', () => pm.response.to.have.status(405));",
+              "pm.test('Error uniforme', () => { const e=pm.response.json().error; pm.expect(e.code).to.be.a('string'); pm.expect(e.requestId).to.be.a('string'); pm.expect(e.details).to.be.an('array'); });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 Exportar archivo JSON",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/tasks/export"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.test('Archivo adjunto',()=>pm.expect(pm.response.headers.get('Content-Disposition')).to.include('attachment')); pm.test('Exportación completa',()=>pm.expect(pm.response.json().data.length).to.equal(1));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "18 Eliminar tarea",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          },
+          {
+            "key": "If-Match",
+            "value": "\"{{version}}\""
+          }
+        ],
+        "url": "{{baseUrl}}/tasks/{{taskId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 204', () => pm.response.to.have.status(204));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "19 Confirmar inexistencia",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/tasks/{{taskId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 404', () => pm.response.to.have.status(404));",
+              "pm.test('Error uniforme', () => { const e=pm.response.json().error; pm.expect(e.code).to.be.a('string'); pm.expect(e.requestId).to.be.a('string'); pm.expect(e.details).to.be.an('array'); });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "20 Cerrar sesión",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/logout",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 204', () => pm.response.to.have.status(204));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "21 Rechazar acceso sin sesión",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/tasks"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 401', () => pm.response.to.have.status(401));",
+              "pm.test('Error uniforme', () => { const e=pm.response.json().error; pm.expect(e.code).to.be.a('string'); pm.expect(e.requestId).to.be.a('string'); pm.expect(e.details).to.be.an('array'); });",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "22 Nueva sesión anónima",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/session"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "pm.collectionVariables.set('csrfToken',pm.response.json().data.csrfToken);",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "23 Login con usuario creado",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"PostmanPrueba2026!\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 200', () => pm.response.to.have.status(200));",
+              "const data=pm.response.json().data; pm.collectionVariables.set('csrfToken',data.csrfToken); pm.test('Usuario autenticado',()=>pm.expect(data.user.username).to.equal(pm.collectionVariables.get('username')));",
+              "}"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "24 Cierre final",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-CSRF-Token",
+            "value": "{{csrfToken}}"
+          }
+        ],
+        "url": "{{baseUrl}}/auth/logout",
+        "body": {
+          "mode": "raw",
+          "raw": "{}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "{",
+              "pm.test('HTTP 204', () => pm.response.to.have.status(204));",
+              "}"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

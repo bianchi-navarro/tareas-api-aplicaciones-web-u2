@@ -1,0 +1,327 @@
+{
+  "generatedAt": "2026-11-01T04:33:58.855Z",
+  "description": "Solicitudes HTTP reales contra una instancia aislada de la aplicación. Cookies, contraseñas y tokens omitidos. Las fechas no son valores de ejemplo.",
+  "records": [
+    {
+      "request": {
+        "method": "GET",
+        "path": "/tasks"
+      },
+      "response": {
+        "status": 401,
+        "body": {
+          "error": {
+            "code": "AUTH_REQUIRED",
+            "message": "Inicie sesión para continuar.",
+            "details": [],
+            "requestId": "596292fb-d1ae-4d57-bb60-bdfa84ac1acd"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/session"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "data": {
+            "user": null,
+            "csrfToken": "[omitido]"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/auth/register",
+        "body": {
+          "username": "evidencia",
+          "password": "[omitida]"
+        }
+      },
+      "response": {
+        "status": 201,
+        "body": {
+          "data": {
+            "user": {
+              "id": 1,
+              "username": "evidencia"
+            },
+            "csrfToken": "[omitido]"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/tasks",
+        "body": {
+          "title": "Entregar API",
+          "priority": "alta"
+        }
+      },
+      "response": {
+        "status": 201,
+        "etag": "\"1\"",
+        "body": {
+          "data": {
+            "id": 1,
+            "title": "Entregar API",
+            "description": "",
+            "status": "pendiente",
+            "priority": "alta",
+            "version": 1,
+            "createdAt": "2026-11-01T04:33:58.832Z",
+            "updatedAt": "2026-11-01T04:33:58.832Z"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/tasks"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "data": [
+            {
+              "id": 1,
+              "title": "Entregar API",
+              "description": "",
+              "status": "pendiente",
+              "priority": "alta",
+              "version": 1,
+              "createdAt": "2026-11-01T04:33:58.832Z",
+              "updatedAt": "2026-11-01T04:33:58.832Z"
+            }
+          ],
+          "meta": {
+            "total": 1,
+            "limit": 50,
+            "offset": 0
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/tasks/1"
+      },
+      "response": {
+        "status": 200,
+        "etag": "\"1\"",
+        "body": {
+          "data": {
+            "id": 1,
+            "title": "Entregar API",
+            "description": "",
+            "status": "pendiente",
+            "priority": "alta",
+            "version": 1,
+            "createdAt": "2026-11-01T04:33:58.832Z",
+            "updatedAt": "2026-11-01T04:33:58.832Z"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/tasks",
+        "body": {
+          "title": "x"
+        }
+      },
+      "response": {
+        "status": 422,
+        "body": {
+          "error": {
+            "code": "VALIDATION_ERROR",
+            "message": "Los datos no son válidos.",
+            "details": [
+              {
+                "field": "title",
+                "message": "Too small: expected string to have >=3 characters"
+              }
+            ],
+            "requestId": "b7bf441f-bded-4cfb-9925-3a2f9f06d5f0"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/tasks",
+        "body": {
+          "title": "ENTREGAR API"
+        }
+      },
+      "response": {
+        "status": 409,
+        "body": {
+          "error": {
+            "code": "DUPLICATE_TITLE",
+            "message": "Ya tiene una tarea con ese título.",
+            "details": [],
+            "requestId": "9495d317-d53b-4e7c-9c83-92875776b012"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PATCH",
+        "path": "/tasks/1",
+        "body": {
+          "status": "en_progreso"
+        }
+      },
+      "response": {
+        "status": 428,
+        "body": {
+          "error": {
+            "code": "PRECONDITION_REQUIRED",
+            "message": "Envíe If-Match con la versión, por ejemplo \"1\".",
+            "details": [],
+            "requestId": "205504b0-63a9-45f6-afea-c677db9fc3a4"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PATCH",
+        "path": "/tasks/1",
+        "body": {
+          "status": "en_progreso"
+        },
+        "ifMatch": "\"1\""
+      },
+      "response": {
+        "status": 200,
+        "etag": "\"2\"",
+        "body": {
+          "data": {
+            "id": 1,
+            "title": "Entregar API",
+            "description": "",
+            "status": "en_progreso",
+            "priority": "alta",
+            "version": 2,
+            "createdAt": "2026-11-01T04:33:58.832Z",
+            "updatedAt": "2026-11-01T04:33:58.846Z"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "PATCH",
+        "path": "/tasks/1",
+        "body": {
+          "status": "completada"
+        },
+        "ifMatch": "\"1\""
+      },
+      "response": {
+        "status": 412,
+        "body": {
+          "error": {
+            "code": "VERSION_CONFLICT",
+            "message": "La tarea cambió. Recárguela antes de editar.",
+            "details": [],
+            "requestId": "4f47e40a-1905-47b8-9211-4fd924fac265"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/tasks/export"
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "data": [
+            {
+              "id": 1,
+              "title": "Entregar API",
+              "description": "",
+              "status": "en_progreso",
+              "priority": "alta",
+              "version": 2,
+              "createdAt": "2026-11-01T04:33:58.832Z",
+              "updatedAt": "2026-11-01T04:33:58.846Z"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "DELETE",
+        "path": "/tasks/1",
+        "ifMatch": "\"2\""
+      },
+      "response": {
+        "status": 204,
+        "body": null
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/tasks/1"
+      },
+      "response": {
+        "status": 404,
+        "body": {
+          "error": {
+            "code": "TASK_NOT_FOUND",
+            "message": "La tarea no existe.",
+            "details": [],
+            "requestId": "e804eeb0-f697-453c-b266-84029c91d556"
+          }
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "POST",
+        "path": "/auth/logout",
+        "body": {}
+      },
+      "response": {
+        "status": 204,
+        "body": null
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "path": "/tasks"
+      },
+      "response": {
+        "status": 401,
+        "body": {
+          "error": {
+            "code": "AUTH_REQUIRED",
+            "message": "Inicie sesión para continuar.",
+            "details": [],
+            "requestId": "e69f4698-ef40-429a-8a0b-7fae95aca668"
+          }
+        }
+      }
+    }
+  ]
+}
